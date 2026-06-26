@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --font-sans: Arial, Helvetica, sans-serif; }
+html { scroll-behavior: smooth; }
+body { background: #f7f4ee; color: #17211f; }
+input, textarea, button { font: inherit; }
