@@ -2,6 +2,20 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OPENROUTER_MODEL = 'openai/gpt-4o-mini';
+
+type OpenRouterCompletion = {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+  error?: {
+    message?: string;
+  };
+};
+
 const prompt = `Ты опытный маркетолог по продвижению бизнеса ВКонтакте.
 
 Проанализируй сообщество по следующим критериям:
@@ -69,14 +83,14 @@ export async function POST(request: Request) {
     image_url: { url: await fileToDataUrl(file) }
   })));
 
-  const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const openRouterResponse = await fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
+      model: OPENROUTER_MODEL,
       messages: [
         {
           role: 'user',
@@ -90,7 +104,7 @@ export async function POST(request: Request) {
     })
   });
 
-  const completion = await openRouterResponse.json();
+  const completion = await openRouterResponse.json() as OpenRouterCompletion;
   if (!openRouterResponse.ok) {
     return NextResponse.json(
       { error: completion.error?.message ?? 'OpenRouter не смог выполнить анализ. Попробуйте позже.' },
