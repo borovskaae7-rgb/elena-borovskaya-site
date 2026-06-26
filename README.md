@@ -1,18 +1,14 @@
 # AI-аудит сообществ ВКонтакте
 
-Next.js-приложение на TypeScript и Tailwind CSS для экспресс-аудита упаковки сообщества ВКонтакте по скриншотам через OpenAI API.
+Next.js-приложение на TypeScript и Tailwind CSS для экспресс-аудита упаковки сообщества ВКонтакте по скриншотам через OpenRouter API.
 
 ## Запуск
 
 ```bash
 npm install
-OPENAI_API_KEY=your_key npm run dev
+OPENROUTER_API_KEY=your_key npm run dev
 ```
 
-Опционально можно задать модель:
-
-```bash
-OPENAI_AUDIT_MODEL=gpt-4.1-mini
-```
+Приложение использует endpoint `https://openrouter.ai/api/v1/chat/completions` и модель `openai/gpt-4o-mini` через OpenRouter.
 
 Откройте `http://localhost:3000`.

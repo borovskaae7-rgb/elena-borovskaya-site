@@ -73,11 +73,11 @@ export default function Home() {
       const response = await fetch('/api/audit', { method: 'POST', body: formData });
       const data = await response.json();
       if (!response.ok) {
-        if (data.code === 'OPENAI_API_KEY_MISSING') {
+        if (data.code === 'OPENROUTER_API_KEY_MISSING') {
           setError({
             title: 'Аудит временно недоступен',
-            message: data.error ?? 'На сервере не настроен OpenAI API Key.',
-            instruction: data.adminInstruction ?? 'Администратору нужно добавить переменную окружения OPENAI_API_KEY и перезапустить приложение.',
+            message: data.error ?? 'Сервис временно не настроен. Попробуйте позже.',
+            instruction: data.adminInstruction ?? 'Администратору нужно добавить переменную окружения OPENROUTER_API_KEY и перезапустить приложение.',
             variant: 'warning'
           });
           return;

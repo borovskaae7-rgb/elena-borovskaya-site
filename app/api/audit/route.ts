@@ -1,4 +1,3 @@
-import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -39,12 +38,12 @@ async function fileToDataUrl(file: File) {
 }
 
 export async function POST(request: Request) {
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.OPENROUTER_API_KEY) {
     return NextResponse.json(
       {
-        code: 'OPENAI_API_KEY_MISSING',
-        error: 'Сервис аудита сейчас не может связаться с OpenAI, потому что на сервере не настроен API Key.',
-        adminInstruction: 'Добавьте переменную окружения OPENAI_API_KEY в настройках хостинга или в .env.local, затем перезапустите приложение.'
+        code: 'OPENROUTER_API_KEY_MISSING',
+        error: 'Сервис временно не настроен. Попробуйте позже.',
+        adminInstruction: 'Добавьте переменную окружения OPENROUTER_API_KEY в настройках хостинга или в .env.local, затем перезапустите приложение.'
       },
       { status: 503 }
     );
@@ -65,25 +64,48 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Можно загрузить до 10 изображений в формате PNG или JPG.' }, { status: 400 });
   }
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const imageParts = await Promise.all(safeImages.map(async (file) => ({ type: 'input_image' as const, image_url: await fileToDataUrl(file) })));
+  const imageParts = await Promise.all(safeImages.map(async (file) => ({
+    type: 'image_url' as const,
+    image_url: { url: await fileToDataUrl(file) }
+  })));
 
-  const response = await client.responses.create({
-    model: process.env.OPENAI_AUDIT_MODEL ?? 'gpt-4.1-mini',
-    input: [{
-      role: 'user',
-      content: [
-        { type: 'input_text', text: `${prompt}\n\nСсылка на сообщество: ${vkUrl}\nИмя клиента: ${name}\nTelegram: ${telegram}` },
-        ...imageParts
-      ]
-    }],
-    text: { format: { type: 'json_object' } }
+  const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'openai/gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: `${prompt}\n\nСсылка на сообщество: ${vkUrl}\nИмя клиента: ${name}\nTelegram: ${telegram}` },
+            ...imageParts
+          ]
+        }
+      ],
+      response_format: { type: 'json_object' }
+    })
   });
 
-  const raw = response.output_text;
+  const completion = await openRouterResponse.json();
+  if (!openRouterResponse.ok) {
+    return NextResponse.json(
+      { error: completion.error?.message ?? 'OpenRouter не смог выполнить анализ. Попробуйте позже.' },
+      { status: openRouterResponse.status }
+    );
+  }
+
+  const raw = completion.choices?.[0]?.message?.content;
+  if (!raw) {
+    return NextResponse.json({ error: 'OpenRouter вернул пустой ответ.' }, { status: 502 });
+  }
+
   try {
     return NextResponse.json({ audit: JSON.parse(raw) });
   } catch {
-    return NextResponse.json({ error: 'OpenAI вернул ответ в неожиданном формате.', raw }, { status: 502 });
+    return NextResponse.json({ error: 'OpenRouter вернул ответ в неожиданном формате.', raw }, { status: 502 });
   }
 }
