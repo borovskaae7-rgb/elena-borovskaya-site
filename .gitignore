@@ -3,3 +3,18 @@ node_modules
 .env*.local
 out
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+logs/
+.vk-profile/
+service-account.json
+.env
+artifacts/
+.vk_checker_cache.sqlite3
+.pytest_cache/
+checkpoint.json
+checkpoint.tmp
+exports/

@@ -1,0 +1,21 @@
+project:
+  batch_size: 200
+  progress_interval: 1000
+  checkpoint_interval: 100
+  artifacts_dir: artifacts
+  cache_path: .vk_checker_cache.sqlite3
+  checkpoint_path: checkpoint.json
+  export_dir: exports
+scraping:
+  navigation_timeout_ms: 30000
+  max_links: 80
+  max_posts: 5
+  max_text_chars: 8000
+rate_limits:
+  playwright_rpm: 120
+  google_sheets_rpm: 60
+  jitter_ms: 350
+monitoring:
+  error_spike_threshold: 0.2
+prefilter:
+  rules_path: prefilter_rules.yaml
